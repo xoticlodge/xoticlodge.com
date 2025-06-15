@@ -10,6 +10,7 @@
 
   <!-- Navigation Bar -->
   <header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-black bg-opacity-70">
+    <h1 class="text-white text-2xl font-bold">Xotic Lodge</h1>
     <div class="flex gap-4">
       <a href="#store" class="text-white bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg font-semibold">Visit Shop</a>
       <a href="#contact" class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg font-semibold">Contact</a>
@@ -78,5 +79,79 @@
     <p>&copy; 2025 Xotic Lodge. All rights reserved.</p>
   </footer>
 
+<!-- Chatbot Button -->
+<button id="chatbot-toggle" class="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-5 rounded-full shadow-lg z-60">
+  Chat with AI
+</button>
+
+<!-- Chatbot Window -->
+<div id="chatbot" class="fixed bottom-20 right-6 w-80 max-w-full bg-white shadow-lg rounded-lg flex flex-col overflow-hidden hidden z-60" style="height: 400px;">
+  <div class="bg-green-600 text-white px-4 py-3 flex justify-between items-center">
+    <h3 class="font-bold">Xotic Lodge AI Chat</h3>
+    <button id="chatbot-close" class="font-bold hover:text-gray-300">&times;</button>
+  </div>
+  <div id="chatbot-messages" class="flex-1 p-4 overflow-y-auto text-gray-800" style="background:#f9fafb;"></div>
+  <form id="chatbot-form" class="flex border-t border-gray-300">
+    <input type="text" id="chatbot-input" class="flex-grow px-3 py-2 focus:outline-none" placeholder="Type your message..." autocomplete="off" required />
+    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4">Send</button>
+  </form>
+</div>
+
+<script>
+  const chatbotToggle = document.getElementById('chatbot-toggle');
+  const chatbot = document.getElementById('chatbot');
+  const chatbotClose = document.getElementById('chatbot-close');
+  const chatbotMessages = document.getElementById('chatbot-messages');
+  const chatbotForm = document.getElementById('chatbot-form');
+  const chatbotInput = document.getElementById('chatbot-input');
+
+  chatbotToggle.addEventListener('click', () => {
+    chatbot.classList.toggle('hidden');
+    chatbotInput.focus();
+  });
+
+  chatbotClose.addEventListener('click', () => {
+    chatbot.classList.add('hidden');
+  });
+
+  function addMessage(text, sender) {
+    const msg = document.createElement('div');
+    msg.classList.add('mb-3', 'whitespace-pre-wrap');
+    if (sender === 'user') {
+      msg.classList.add('text-right', 'text-green-700', 'font-semibold');
+      msg.textContent = text;
+    } else {
+      msg.classList.add('text-left', 'text-gray-800', 'bg-gray-100', 'p-2', 'rounded');
+      msg.textContent = text;
+    }
+    chatbotMessages.appendChild(msg);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+
+  chatbotForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const userMessage = chatbotInput.value.trim();
+    if (!userMessage) return;
+    addMessage(userMessage, 'user');
+    chatbotInput.value = '';
+    addMessage('Thinking...', 'bot');
+
+    // Call your backend API here to get AI response:
+    try {
+      const response = await fetch('YOUR_BACKEND_API_ENDPOINT', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: userMessage})
+      });
+      const data = await response.json();
+      // Remove "Thinking..."
+      chatbotMessages.lastChild.remove();
+      addMessage(data.reply || 'Sorry, no response.', 'bot');
+    } catch (error) {
+      chatbotMessages.lastChild.remove();
+      addMessage('Error: Unable to get response.', 'bot');
+    }
+  });
+</script>
 </body>
 </html>
